@@ -1,0 +1,86 @@
+/* static/css/style.css */
+
+/* 1. Import a clean, modern font */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+
+/* 2. Define a consistent color palette and variables */
+:root {
+    --primary-color: #0d6efd; /* Bootstrap Blue */
+    --secondary-color: #6c757d; /* Bootstrap Gray */
+    --background-color: #f8f9fa; /* A light gray */
+    --surface-color: #ffffff; /* White for cards */
+    --text-color: #212529;
+    --text-muted-color: #6c757d;
+    --border-color: #dee2e6;
+    --success-color: #198754;
+    --warning-color: #ffc107;
+    --danger-color: #dc3545;
+}
+
+/* 3. General Body and Typography Styles */
+body {
+    font-family: 'Inter', sans-serif;
+    background-color: var(--background-color);
+    color: var(--text-color);
+}
+
+h1, h2, h3, h4, h5, h6 {
+    font-weight: 600;
+}
+
+/* 4. Custom Card Style for consistent containers */
+.card {
+    border: 1px solid var(--border-color);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+    transition: box-shadow 0.3s ease-in-out;
+}
+
+.card:hover {
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.08);
+}
+
+.card-header.bg-white {
+    background-color: var(--surface-color) !important;
+    border-bottom: 1px solid var(--border-color);
+}
+
+
+/* 5. Navbar Styling */
+.navbar {
+    border-bottom: 1px solid var(--border-color);
+    box-shadow: 0 2px 4px rgba(0,0,0,0.04);
+}
+
+.navbar-brand {
+    font-weight: 700;
+}
+
+/* 6. Button and Icon Enhancements */
+.btn {
+    font-weight: 500;
+}
+
+.btn i {
+    margin-right: 0.5rem;
+}
+
+/* 7. Table Styling */
+.table {
+    border: 1px solid var(--border-color);
+}
+.table thead th {
+    font-weight: 600;
+    background-color: var(--background-color);
+}
+
+/* 8. Form Styling */
+.form-control:focus {
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25);
+}
+
+/* Center auth forms */
+.auth-container {
+    max-width: 450px;
+    margin: 4rem auto;
+}

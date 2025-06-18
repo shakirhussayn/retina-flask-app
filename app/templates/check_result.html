@@ -1,0 +1,46 @@
+{% extends 'base.html' %}
+{% block title %}Analysis Result{% endblock %}
+{% block content %}
+<div class="card">
+    <div class="card-header bg-white">
+        <h1 class="h3 mb-0">Analysis Result: {{ top_label | replace('_', ' ') }}</h1>
+    </div>
+    <div class="card-body">
+        <div class="alert alert-info">
+            <strong>Overall Confidence:</strong> {{ top_conf }}
+        </div>
+        <div class="row my-4">
+            <div class="col-md-6">
+                <h4 class="mb-3">Uploaded Image</h4>
+                <img src="{{ url_for('static', filename='uploads/' ~ filename) }}"
+                    class="img-fluid border rounded" alt="Uploaded image">
+            </div>
+            <div class="col-md-6">
+                <h4 class="mb-3">All Class Probabilities</h4>
+                <div class="pt-2">
+                    {% for p in probs %}
+                    <div class="mb-3">
+                        <div class="d-flex justify-content-between">
+                            <span>{{ p.label | replace('_', ' ') }}</span>
+                            <span><strong>{{ p.conf }}</strong></span>
+                        </div>
+                        <div class="progress" style="height: 12px;">
+                            <div
+                                class="progress-bar {% if p.label == top_label %}bg-primary{% else %}bg-secondary{% endif %}"
+                                role="progressbar"
+                                style="width: {{ p.conf }};"
+                                aria-valuenow="{{ p.conf[:-1] | float }}"
+                                aria-valuemin="0"
+                                aria-valuemax="100">
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+        <hr>
+        <a href="{{ url_for('main.check') }}" class="btn btn-secondary mt-3"><i class="fa-solid fa-rotate-right"></i> Check Another Patient</a>
+    </div>
+</div>
+{% endblock %}

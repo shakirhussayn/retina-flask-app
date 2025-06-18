@@ -1,0 +1,101 @@
+{% extends 'base.html' %}
+{% block title %}New Analysis{% endblock %}
+{% block content %}
+<div class="card">
+    <div class="card-header bg-white">
+        <h1 class="h3 mb-0">New Retinopathy Analysis</h1>
+    </div>
+    <div class="card-body">
+        <form method="post" enctype="multipart/form-data" novalidate>
+            {{ form.hidden_tag() }}
+            <div class="row">
+                <div class="col-md-6">
+                    <h4 class="mb-3">Patient Details</h4>
+                    <div class="mb-3">
+                        {{ form.name.label(class="form-label") }}
+                        {{ form.name(class="form-control is-invalid" if form.name.errors else "form-control") }}
+                        {% if form.name.errors %}
+                            <div class="invalid-feedback">
+                                {% for error in form.name.errors %}{{ error }}{% endfor %}
+                            </div>
+                        {% endif %}
+                    </div>
+                    <div class="mb-3">
+                        {{ form.date_of_birth.label(class="form-label") }}
+                        {{ form.date_of_birth(class="form-control is-invalid" if form.date_of_birth.errors else "form-control", id="dateOfBirth") }}
+                        {% if form.date_of_birth.errors %}
+                            <div class="invalid-feedback">
+                                {% for error in form.date_of_birth.errors %}{{ error }}{% endfor %}
+                            </div>
+                        {% endif %}
+                        <div id="dob-error-js" class="invalid-feedback"></div>
+                    </div>
+                    <div class="mb-3">
+                        {{ form.medical_history.label(class="form-label") }}
+                        {{ form.medical_history(class="form-control", rows=3) }}
+                    </div>
+                    <div class="mb-3">
+                        {{ form.symptoms.label(class="form-label") }}
+                        {{ form.symptoms(class="form-control", rows=3) }}
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <h4 class="mb-3">Fundus Image Upload</h4>
+                    <div class="mb-3">
+                        {{ form.image.label(class="form-label") }}
+                        {{ form.image(class="form-control is-invalid" if form.image.errors else "form-control", id="imageUpload") }}
+                        {% if form.image.errors %}
+                            <div class="invalid-feedback">
+                                {% for error in form.image.errors %}{{ error }}{% endfor %}
+                            </div>
+                        {% endif %}
+                    </div>
+                    <img id="imagePreview" src="#" alt="Image Preview" class="img-fluid border rounded" style="display:none; max-height: 300px; margin-top: 1rem;"/>
+                </div>
+            </div>
+            <hr class="my-4">
+            <button type="submit" class="btn btn-primary btn-lg"><i class="fa-solid fa-paper-plane"></i> Submit & Analyze</button>
+        </form>
+    </div>
+</div>
+
+<script>
+    document.getElementById('imageUpload').onchange = function (evt) {
+        const [file] = this.files;
+        if (file) {
+            const preview = document.getElementById('imagePreview');
+            preview.src = URL.createObjectURL(file);
+            preview.style.display = 'block';
+            
+            preview.onload = () => {
+              URL.revokeObjectURL(preview.src);
+            }
+        }
+    };
+
+    const dobInput = document.getElementById('dateOfBirth');
+    const dobErrorDiv = document.getElementById('dob-error-js');
+
+    dobInput.addEventListener('blur', function() {
+        const dobValue = this.value;
+
+        if (!dobValue) {
+            dobInput.classList.remove('is-invalid');
+            dobErrorDiv.textContent = '';
+            return;
+        }
+
+        const selectedDate = new Date(dobValue + 'T00:00:00'); 
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+
+        if (selectedDate > today) {
+            dobInput.classList.add('is-invalid');
+            dobErrorDiv.textContent = 'Date of birth cannot be in the future.';
+        } else {
+            dobInput.classList.remove('is-invalid');
+            dobErrorDiv.textContent = '';
+        }
+    });
+</script>
+{% endblock %}

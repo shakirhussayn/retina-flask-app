@@ -1,0 +1,41 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="card">
+    <div class="card-header bg-white">
+        <h1 class="h3 mb-0">About Diabetic Retinopathy</h1>
+    </div>
+    <div class="card-body">
+        <p class="lead">Diabetic retinopathy is a complication of diabetes that affects the eyes, caused by damage to the blood vessels of the retina, the light-sensitive tissue at the back of the eye.</p>
+        <div class="row mt-4">
+            <div class="col-md-4">
+                <h4><i class="fa-solid fa-circle-exclamation text-danger"></i> Causes</h4>
+                <ul>
+                    <li>Chronically high blood sugar levels</li>
+                    <li>High blood pressure (hypertension)</li>
+                    <li>High cholesterol (hyperlipidemia)</li>
+                    <li>Duration of diabetes</li>
+                </ul>
+            </div>
+            <div class="col-md-4">
+                <h4><i class="fa-solid fa-eye-slash text-warning"></i> Symptoms</h4>
+                <ul>
+                    <li>Blurred vision</li>
+                    <li>Floaters (spots or dark strings in vision)</li>
+                    <li>Fluctuating vision</li>
+                    <li>Vision loss</li>
+                </ul>
+            </div>
+            <div class="col-md-4">
+                <h4><i class="fa-solid fa-briefcase-medical text-success"></i> Treatment Options</h4>
+                <ul>
+                    <li>Laser therapy (photocoagulation)</li>
+                    <li>Anti-VEGF injections</li>
+                    <li>Vitrectomy surgery in advanced cases</li>
+                </ul>
+            </div>
+        </div>
+        <hr>
+        <p>Early detection and timely treatment can prevent vision loss. For more information, please consult the <a href="https://www.who.int/news-room/fact-sheets/detail/diabetes" target="_blank">WHO publications</a> or your healthcare provider’s guidelines.</p>
+    </div>
+</div>
+{% endblock %}

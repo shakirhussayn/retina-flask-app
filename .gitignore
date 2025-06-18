@@ -1,0 +1,17 @@
+# Virtual Environment
+venv/
+.venv/
+
+# Python cache
+__pycache__/
+*.pyc
+
+# Instance folder (contains secrets and database)
+instance/
+
+# Environment variables
+.env
+
+# SQLite database files
+*.db
+*.sqlite3

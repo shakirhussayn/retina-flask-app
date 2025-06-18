@@ -1,0 +1,12 @@
+{% extends 'base.html' %}
+{% block content %}
+<h1>Report for {{ patient.name }}</h1>
+<p><strong>DOB:</strong> {{ patient.date_of_birth }}</p>
+<p><strong>History:</strong> {{ patient.medical_history }}</p>
+<p><strong>Symptoms:</strong> {{ patient.symptoms }}</p>
+<hr>
+<h3>DR Diagnosis: {{ patient.dr_result }}</h3>
+<p><strong>Confidence:</strong> {{ (patient.dr_confidence*100)|round(2) }}%</p>
+<img src="{{ url_for('static', filename='uploads/' ~ patient.image_filename) }}"
+     class="img-fluid mt-3" alt="Retina">
+{% endblock %}

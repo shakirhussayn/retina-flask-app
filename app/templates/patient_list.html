@@ -1,0 +1,71 @@
+{% extends 'base.html' %}
+{% block title %}Patient List{% endblock %}
+{% block content %}
+<div class="card">
+  <div class="card-header bg-white">
+    <h1 class="h3 mb-0">All Patients</h1>
+  </div>
+  <div class="card-body">
+    <form method="get" class="mb-4">
+      <div class="input-group">
+        <input type="text" name="q" value="{{ search }}" class="form-control" placeholder="Search by patient name…">
+        <button class="btn btn-outline-secondary"><i class="fa-solid fa-search"></i> Search</button>
+      </div>
+    </form>
+    <div class="table-responsive">
+      <table class="table table-hover align-middle">
+        <thead>
+          <tr>
+            <th>Name</th>
+            <th>Date of Birth</th>
+            <th>Result</th>
+            <th>Confidence</th>
+            <th>Image</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for p in patients %}
+          <tr>
+            <td>{{ p.name }}</td>
+            <td>{{ p.date_of_birth.strftime('%d %b, %Y') }}</td>
+            <td>
+                <span class="badge 
+                    {% if p.dr_result == 'No_DR' %}bg-success
+                    {% elif p.dr_result in ['Mild', 'Moderate'] %}bg-warning text-dark
+                    {% elif p.dr_result in ['Severe', 'Proliferate_DR'] %}bg-danger
+                    {% else %}bg-secondary
+                    {% endif %}">
+                    {{ p.dr_result | replace('_', ' ') or '—' }}
+                </span>
+            </td>
+            <td>
+              {% if p.dr_confidence is not none %}{{ (p.dr_confidence*100)|round(1) }}%{% else %}—{% endif %}
+            </td>
+            <td>
+              {% if p.image_filename %}
+                <img src="{{ url_for('static', filename='uploads/' ~ p.image_filename) }}" width="80" class="rounded" alt="thumb">
+              {% endif %}
+            </td>
+            <td>
+              <a href="{{ url_for('main.patient_detail', patient_id=p.id) }}" class="btn btn-sm btn-primary">
+                <i class="fa-solid fa-eye"></i> View
+              </a>
+            </td>
+          </tr>
+          {% else %}
+          <tr>
+              <td colspan="6" class="text-center text-muted py-5">No patients found.</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% if pagination.total > pagination.per_page %}
+    <div class="mt-3 d-flex justify-content-center">
+        {{ pagination.links }}
+    </div>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

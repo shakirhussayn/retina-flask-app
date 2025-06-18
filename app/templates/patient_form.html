@@ -1,0 +1,24 @@
+{% extends 'base.html' %}
+{% block content %}
+<h1>New Patient</h1>
+<form method="post">
+  {{ form.hidden_tag() }}
+  <div class="mb-3">
+    {{ form.name.label(class="form-label") }}
+    {{ form.name(class="form-control") }}
+  </div>
+  <div class="mb-3">
+    {{ form.date_of_birth.label(class="form-label") }}
+    {{ form.date_of_birth(class="form-control") }}
+  </div>
+  <div class="mb-3">
+    {{ form.medical_history.label(class="form-label") }}
+    {{ form.medical_history(class="form-control", rows=4) }}
+  </div>
+  <div class="mb-3">
+    {{ form.symptoms.label(class="form-label") }}
+    {{ form.symptoms(class="form-control", rows=4) }}
+  </div>
+  <button type="submit" class="btn btn-primary">Submit</button>
+</form>
+{% endblock %}
