@@ -1,6 +1,39 @@
 {% extends 'base.html' %}
 {% block title %}Patient Details{% endblock %}
+
 {% block content %}
+<style>
+    .progress-circle {
+        width: 120px;
+        height: 120px;
+        border-radius: 50%;
+        display: grid;
+        place-items: center;
+        background: conic-gradient(var(--primary-color) calc(var(--progress-value) * 1%), #e9ecef 0);
+        font-size: 2rem;
+        font-weight: bold;
+        color: var(--primary-color);
+        position: relative;
+    }
+    .progress-circle::before {
+        content: '';
+        position: absolute;
+        width: 85%;
+        height: 85%;
+        background: white;
+        border-radius: 50%;
+    }
+    .progress-circle span {
+        position: relative;
+        font-size: 1.5rem;
+    }
+    .diagnosis-icon {
+        font-size: 1.5rem;
+        vertical-align: middle;
+        margin-right: 0.5rem;
+    }
+</style>
+
 <div class="card">
   <div class="card-header bg-white d-flex justify-content-between align-items-center">
     <h1 class="h3 mb-0">Patient: {{ patient.name }}</h1>
@@ -20,27 +53,40 @@
         {% if patient.dr_result %}
           <hr class="my-4">
           <h3>Analysis Result</h3>
-          <p>
-            <strong>Diagnosis:</strong>
-            <span class="badge fs-6
-                {% if patient.dr_result == 'No_DR' %}bg-success
-                {% elif patient.dr_result in ['Mild', 'Moderate'] %}bg-warning text-dark
-                {% elif patient.dr_result in ['Severe', 'Proliferate_DR'] %}bg-danger
-                {% else %}bg-secondary
-                {% endif %}">
-                {{ patient.dr_result | replace('_', ' ') }}
-            </span>
-          </p>
-          <p><strong>Confidence Score:</strong> {{ (patient.dr_confidence * 100) | round(2) }}%</p>
-          <a href="{{ url_for('main.download_report', patient_id=patient.id) }}" class="btn btn-primary mt-3">
+          <div class="d-flex align-items-center">
+              <div class="progress-circle me-4" style="--progress-value: {{ (patient.dr_confidence * 100) | round(0) }};">
+                  <span>{{ (patient.dr_confidence * 100) | round(1) }}%</span>
+              </div>
+              <div>
+                  <h4 class="h5 mb-1">Diagnosis:</h4>
+                  <p class="h5">
+                    {% if patient.dr_result == 'No_DR' %}
+                      <i class="fa-solid fa-shield-check text-success diagnosis-icon"></i>
+                      <span class="badge bg-success fs-6">{{ patient.dr_result | replace('_', ' ') }}</span>
+                    {% elif patient.dr_result in ['Mild', 'Moderate'] %}
+                      <i class="fa-solid fa-triangle-exclamation text-warning diagnosis-icon"></i>
+                      <span class="badge bg-warning text-dark fs-6">{{ patient.dr_result | replace('_', ' ') }}</span>
+                    {% else %}
+                      <i class="fa-solid fa-circle-exclamation text-danger diagnosis-icon"></i>
+                      <span class="badge bg-danger fs-6">{{ patient.dr_result | replace('_', ' ') }}</span>
+                    {% endif %}
+                  </p>
+                  <small class="text-muted">Confidence Score</small>
+              </div>
+          </div>
+
+          <a href="{{ url_for('main.download_report', patient_id=patient.id) }}" class="btn btn-primary mt-4">
             <i class="fa-solid fa-file-arrow-down"></i> Download PDF Report
           </a>
         {% endif %}
       </div>
+
       <div class="col-md-6">
         {% if patient.image_filename %}
           <h3 class="mb-3">Retina Image</h3>
-          <img src="{{ url_for('static', filename='uploads/' ~ patient.image_filename) }}" class="img-fluid rounded border" alt="Retina image for {{ patient.name }}">
+          <a href="#" data-bs-toggle="modal" data-bs-target="#imageModal">
+            <img src="{{ url_for('static', filename='uploads/' ~ patient.image_filename) }}" class="img-fluid rounded border" style="cursor: zoom-in;" alt="Retina image for {{ patient.name }}">
+          </a>
         {% else %}
           <div class="text-center text-muted p-5">
             <i class="fa-solid fa-image fa-3x"></i>
@@ -51,4 +97,20 @@
     </div>
   </div>
 </div>
+
+{% if patient.image_filename %}
+<div class="modal fade" id="imageModal" tabindex="-1" aria-labelledby="imageModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-lg modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="imageModalLabel">Retina Image: {{ patient.name }}</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body text-center">
+        <img src="{{ url_for('static', filename='uploads/' ~ patient.image_filename) }}" class="img-fluid" alt="Full size retina image">
+      </div>
+    </div>
+  </div>
+</div>
+{% endif %}
 {% endblock %}

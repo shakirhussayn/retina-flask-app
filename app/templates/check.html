@@ -1,101 +1,225 @@
 {% extends 'base.html' %}
 {% block title %}New Analysis{% endblock %}
+
 {% block content %}
+<style>
+    .form-step {
+        display: none; /* All steps are hidden by default */
+    }
+    .form-step.active {
+        display: block; /* The 'active' class makes a step visible */
+        animation: fadeIn 0.5s ease-in-out;
+    }
+    @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(15px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+    .review-item { margin-bottom: 0.5rem; }
+    .review-item strong { color: #333; }
+    .loading-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(255, 255, 255, 0.85); z-index: 9999; justify-content: center; align-items: center; flex-direction: column; }
+</style>
+
 <div class="card">
     <div class="card-header bg-white">
         <h1 class="h3 mb-0">New Retinopathy Analysis</h1>
     </div>
     <div class="card-body">
-        <form method="post" enctype="multipart/form-data" novalidate>
+        <div class="progress mb-4" style="height: 25px;">
+            <div id="progress-bar" class="progress-bar progress-bar-striped progress-bar-animated" role="progressbar" style="width: 33.3%;"><strong>Step 1: Patient Details</strong></div>
+        </div>
+
+        <form method="post" enctype="multipart/form-data" novalidate id="analysis-form">
             {{ form.hidden_tag() }}
-            <div class="row">
-                <div class="col-md-6">
-                    <h4 class="mb-3">Patient Details</h4>
-                    <div class="mb-3">
+
+            <div id="step-1" class="form-step active">
+                <h4 class="mb-3">Step 1: Patient Details</h4>
+                <div class="row">
+                    <div class="col-md-6 mb-3">
                         {{ form.name.label(class="form-label") }}
-                        {{ form.name(class="form-control is-invalid" if form.name.errors else "form-control") }}
-                        {% if form.name.errors %}
-                            <div class="invalid-feedback">
-                                {% for error in form.name.errors %}{{ error }}{% endfor %}
-                            </div>
-                        {% endif %}
+                        {{ form.name(class="form-control", id="patientName") }}
+                        <div class="invalid-feedback">This field is required.</div>
                     </div>
-                    <div class="mb-3">
+                    <div class="col-md-6 mb-3">
                         {{ form.date_of_birth.label(class="form-label") }}
-                        {{ form.date_of_birth(class="form-control is-invalid" if form.date_of_birth.errors else "form-control", id="dateOfBirth") }}
-                        {% if form.date_of_birth.errors %}
-                            <div class="invalid-feedback">
-                                {% for error in form.date_of_birth.errors %}{{ error }}{% endfor %}
-                            </div>
-                        {% endif %}
-                        <div id="dob-error-js" class="invalid-feedback"></div>
-                    </div>
-                    <div class="mb-3">
-                        {{ form.medical_history.label(class="form-label") }}
-                        {{ form.medical_history(class="form-control", rows=3) }}
-                    </div>
-                    <div class="mb-3">
-                        {{ form.symptoms.label(class="form-label") }}
-                        {{ form.symptoms(class="form-control", rows=3) }}
+                        {{ form.date_of_birth(class="form-control", id="dateOfBirth") }}
+                        <div class="invalid-feedback" id="dob-error-js"></div>
                     </div>
                 </div>
-                <div class="col-md-6">
-                    <h4 class="mb-3">Fundus Image Upload</h4>
-                    <div class="mb-3">
-                        {{ form.image.label(class="form-label") }}
-                        {{ form.image(class="form-control is-invalid" if form.image.errors else "form-control", id="imageUpload") }}
-                        {% if form.image.errors %}
-                            <div class="invalid-feedback">
-                                {% for error in form.image.errors %}{{ error }}{% endfor %}
-                            </div>
-                        {% endif %}
-                    </div>
-                    <img id="imagePreview" src="#" alt="Image Preview" class="img-fluid border rounded" style="display:none; max-height: 300px; margin-top: 1rem;"/>
+                <div class="mb-3">
+                    {{ form.medical_history.label(class="form-label") }}
+                    {{ form.medical_history(class="form-control", rows=3) }}
+                </div>
+                <div class="mb-3">
+                    {{ form.symptoms.label(class="form-label") }}
+                    {{ form.symptoms(class="form-control", rows=3) }}
+                </div>
+                <div class="text-end">
+                    <button type="button" class="btn btn-primary btn-next">Next: Upload Image <i class="fa-solid fa-arrow-right ms-2"></i></button>
                 </div>
             </div>
-            <hr class="my-4">
-            <button type="submit" class="btn btn-primary btn-lg"><i class="fa-solid fa-paper-plane"></i> Submit & Analyze</button>
+
+            <div id="step-2" class="form-step">
+                <h4 class="mb-3">Step 2: Fundus Image Upload</h4>
+                <div class="mb-3">
+                    {{ form.image.label(class="form-label") }}
+                    {{ form.image(class="form-control", id="imageUpload", accept="image/jpeg, image/png") }}
+                    <div class="invalid-feedback" id="image-error-js"></div>
+                </div>
+                <div class="text-center">
+                    <img id="imagePreview" src="#" alt="Image Preview" class="img-fluid border rounded" style="display:none; max-height: 300px; margin-top: 1rem;"/>
+                </div>
+                <div class="d-flex justify-content-between mt-4">
+                    <button type="button" class="btn btn-secondary btn-prev"><i class="fa-solid fa-arrow-left me-2"></i> Previous</button>
+                    <button type="button" class="btn btn-primary btn-next">Next: Review & Submit <i class="fa-solid fa-arrow-right ms-2"></i></button>
+                </div>
+            </div>
+
+            <div id="step-3" class="form-step">
+                <h4 class="mb-3">Step 3: Confirm and Analyze</h4>
+                <p>Please review the details below. When you are ready, click "Submit & Analyze" to begin the analysis.</p>
+                <div class="card bg-light p-3">
+                    <div class="review-item"><strong>Patient Name:</strong> <span id="review-name"></span></div>
+                    <div class="review-item"><strong>Date of Birth:</strong> <span id="review-dob"></span></div>
+                    <div class="review-item"><strong>Image File:</strong> <span id="review-image"></span></div>
+                </div>
+                <div class="d-flex justify-content-between mt-4">
+                    <button type="button" class="btn btn-secondary btn-prev"><i class="fa-solid fa-arrow-left me-2"></i> Previous</button>
+                    <button type="submit" class="btn btn-success btn-lg"><i class="fa-solid fa-paper-plane me-2"></i> Submit & Analyze</button>
+                </div>
+            </div>
         </form>
     </div>
 </div>
 
+<div id="loading-overlay" class="loading-overlay">
+    <div class="spinner-border text-primary" style="width: 3rem; height: 3rem;" role="status"><span class="visually-hidden">Loading...</span></div>
+    <h4 class="mt-3">Processing your analysis...</h4>
+    <p class="text-muted">This may take a moment.</p>
+</div>
+
+
 <script>
-    document.getElementById('imageUpload').onchange = function (evt) {
-        const [file] = this.files;
-        if (file) {
-            const preview = document.getElementById('imagePreview');
-            preview.src = URL.createObjectURL(file);
-            preview.style.display = 'block';
+    document.addEventListener('DOMContentLoaded', function () {
+        const formSteps = document.querySelectorAll('.form-step');
+        const nextButtons = document.querySelectorAll('.btn-next');
+        const prevButtons = document.querySelectorAll('.btn-prev');
+        const form = document.getElementById('analysis-form');
+        let currentStep = 0;
+
+        function showStep(stepIndex) {
+            formSteps.forEach((step, index) => {
+                step.classList.toggle('active', index === stepIndex);
+            });
+            updateProgress(stepIndex);
+        }
+
+        function updateProgress(stepIndex) {
+            const progressTexts = ["Step 1: Patient Details", "Step 2: Upload Image", "Step 3: Review & Submit"];
+            const progressPercentage = ((stepIndex + 1) / formSteps.length) * 100;
+            const progressBar = document.getElementById('progress-bar');
+            progressBar.style.width = `${progressPercentage}%`;
+            progressBar.innerHTML = `<strong>${progressTexts[stepIndex]}</strong>`;
+        }
+
+        function validateAndGoNext() {
+            if (currentStep === 0 && !validateStep1()) return;
+            if (currentStep === 1 && !validateStep2()) return;
             
-            preview.onload = () => {
-              URL.revokeObjectURL(preview.src);
+            if (currentStep === 1) populateReviewStep();
+
+            if (currentStep < formSteps.length - 1) {
+                currentStep++;
+                showStep(currentStep);
             }
         }
-    };
 
-    const dobInput = document.getElementById('dateOfBirth');
-    const dobErrorDiv = document.getElementById('dob-error-js');
+        function goPrev() {
+            if (currentStep > 0) {
+                currentStep--;
+                showStep(currentStep);
+            }
+        }
+        
+        nextButtons.forEach(button => button.addEventListener('click', validateAndGoNext));
+        prevButtons.forEach(button => button.addEventListener('click', goPrev));
 
-    dobInput.addEventListener('blur', function() {
-        const dobValue = this.value;
+        // --- Validation Functions ---
+        const nameInput = document.getElementById('patientName');
+        const dobInput = document.getElementById('dateOfBirth');
+        const imageInput = document.getElementById('imageUpload');
 
-        if (!dobValue) {
-            dobInput.classList.remove('is-invalid');
-            dobErrorDiv.textContent = '';
-            return;
+        function validateStep1() {
+            let isValid = true;
+            // Name
+            if (nameInput.value.trim() === '') {
+                nameInput.classList.add('is-invalid');
+                isValid = false;
+            } else {
+                nameInput.classList.remove('is-invalid');
+            }
+            // DOB
+            const dobErrorDiv = document.getElementById('dob-error-js');
+            if (dobInput.value === '') {
+                dobInput.classList.add('is-invalid');
+                dobErrorDiv.textContent = 'This field is required.';
+            } else {
+                const selectedDate = new Date(dobInput.value + 'T00:00:00');
+                const today = new Date();
+                today.setHours(0, 0, 0, 0);
+                if (selectedDate > today) {
+                    dobInput.classList.add('is-invalid');
+                    dobErrorDiv.textContent = 'Date of birth cannot be in the future.';
+                    isValid = false;
+                } else {
+                    dobInput.classList.remove('is-invalid');
+                }
+            }
+            return isValid;
         }
 
-        const selectedDate = new Date(dobValue + 'T00:00:00'); 
-        const today = new Date();
-        today.setHours(0, 0, 0, 0);
-
-        if (selectedDate > today) {
-            dobInput.classList.add('is-invalid');
-            dobErrorDiv.textContent = 'Date of birth cannot be in the future.';
-        } else {
-            dobInput.classList.remove('is-invalid');
-            dobErrorDiv.textContent = '';
+        function validateStep2() {
+            const imageErrorDiv = document.getElementById('image-error-js');
+            if (imageInput.files.length === 0) {
+                imageInput.classList.add('is-invalid');
+                imageErrorDiv.textContent = 'An image file is required.';
+                return false;
+            }
+            const file = imageInput.files[0];
+            const allowedExtensions = /\.(jpg|jpeg|png)$/i;
+            if (!allowedExtensions.test(file.name)) {
+                imageInput.classList.add('is-invalid');
+                imageErrorDiv.textContent = 'Invalid file type. Please select a JPG or PNG.';
+                return false;
+            }
+            imageInput.classList.remove('is-invalid');
+            return true;
         }
+
+        function populateReviewStep() {
+            document.getElementById('review-name').textContent = nameInput.value || 'N/A';
+            document.getElementById('review-dob').textContent = dobInput.value || 'N/A';
+            const imageFile = imageInput.files[0];
+            document.getElementById('review-image').textContent = imageFile ? imageFile.name : 'N/A';
+        }
+        
+        // --- Form Submission ---
+        form.addEventListener('submit', function(e) {
+            if (!validateStep1() || !validateStep2()) {
+                e.preventDefault();
+                alert('Please correct the errors before submitting.');
+            } else {
+                document.getElementById('loading-overlay').style.display = 'flex';
+            }
+        });
+        
+        // Image preview
+        imageInput.onchange = (evt) => {
+            const [file] = evt.target.files;
+            if (file) {
+                document.getElementById('imagePreview').src = URL.createObjectURL(file);
+                document.getElementById('imagePreview').style.display = 'block';
+            }
+        };
     });
 </script>
 {% endblock %}

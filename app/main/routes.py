@@ -1,18 +1,22 @@
 import os
 import cv2
 import numpy as np
+import json # <--- Add this import for the chart data
 from io import BytesIO
+from datetime import date # <--- Add this import for today's date
 from flask import render_template, redirect, url_for, flash, request, send_file, current_app
 from flask_login import login_required, current_user
 from werkzeug.utils import secure_filename
 from flask_paginate import Pagination, get_page_parameter
 from reportlab.lib.pagesizes import letter
 from reportlab.pdfgen import canvas
+from sqlalchemy import func, cast, Date # <--- Add these imports for database functions
 from app import db, dr_model, detector, CLASS_LABELS, IMG_SIZE, DET_SIZE, THRESHOLD
-from app.main import bp  # Import the blueprint object 'bp'
+from app.main import bp
 from app.models import Patient
 from app.forms import PatientCheckForm
 
+# is_retinal_image and preprocess functions remain unchanged...
 def is_retinal_image(path: str) -> bool:
     img = cv2.imread(path)
     if img is None:
@@ -27,12 +31,34 @@ def preprocess(path: str) -> np.ndarray:
     img = cv2.resize(img, IMG_SIZE) / 255.0
     return img[None]
 
+
+# --- THIS IS THE UPDATED HOME/DASHBOARD ROUTE ---
 @bp.route('/')
 @bp.route('/home')
 @login_required
 def home():
-    return render_template('home.html', title='Home')
+    # Query for dashboard statistics
+    total_patients = db.session.query(func.count(Patient.id)).scalar()
+    today_s_analyses = db.session.query(func.count(Patient.id)).filter(cast(Patient.created_at, Date) == date.today()).scalar()
+    recent_patients = Patient.query.order_by(Patient.created_at.desc()).limit(5).all()
 
+    # Query for chart data
+    diagnosis_distribution = db.session.query(Patient.dr_result, func.count(Patient.dr_result)).group_by(Patient.dr_result).all()
+    
+    chart_labels = [result[0].replace('_', ' ') if result[0] else 'N/A' for result in diagnosis_distribution]
+    chart_data = [result[1] for result in diagnosis_distribution]
+
+    return render_template(
+        'home.html', 
+        title='Dashboard',
+        total_patients=total_patients,
+        today_s_analyses=today_s_analyses,
+        recent_patients=recent_patients,
+        chart_labels=json.dumps(chart_labels),
+        chart_data=json.dumps(chart_data)
+    )
+
+# --- All other routes (check, patient_list, etc.) remain unchanged below this point ---
 @bp.route('/check', methods=['GET', 'POST'])
 @login_required
 def check():

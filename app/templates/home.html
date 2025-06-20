@@ -1,41 +1,119 @@
 {% extends 'base.html' %}
+{% block title %}Dashboard{% endblock %}
+
 {% block content %}
-<div class="card">
-    <div class="card-header bg-white">
-        <h1 class="h3 mb-0">About Diabetic Retinopathy</h1>
-    </div>
-    <div class="card-body">
-        <p class="lead">Diabetic retinopathy is a complication of diabetes that affects the eyes, caused by damage to the blood vessels of the retina, the light-sensitive tissue at the back of the eye.</p>
-        <div class="row mt-4">
-            <div class="col-md-4">
-                <h4><i class="fa-solid fa-circle-exclamation text-danger"></i> Causes</h4>
-                <ul>
-                    <li>Chronically high blood sugar levels</li>
-                    <li>High blood pressure (hypertension)</li>
-                    <li>High cholesterol (hyperlipidemia)</li>
-                    <li>Duration of diabetes</li>
-                </ul>
+<div class="row">
+
+    <div class="col-lg-7">
+        
+        <div class="row">
+            <div class="col-md-6 mb-4">
+                <div class="card h-100">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <h5 class="card-title text-muted">Total Patients</h5>
+                                <h2 class="h1 fw-bold">{{ total_patients }}</h2>
+                            </div>
+                            <div class="fs-1 text-primary"><i class="fa-solid fa-users"></i></div>
+                        </div>
+                    </div>
+                </div>
             </div>
-            <div class="col-md-4">
-                <h4><i class="fa-solid fa-eye-slash text-warning"></i> Symptoms</h4>
-                <ul>
-                    <li>Blurred vision</li>
-                    <li>Floaters (spots or dark strings in vision)</li>
-                    <li>Fluctuating vision</li>
-                    <li>Vision loss</li>
-                </ul>
-            </div>
-            <div class="col-md-4">
-                <h4><i class="fa-solid fa-briefcase-medical text-success"></i> Treatment Options</h4>
-                <ul>
-                    <li>Laser therapy (photocoagulation)</li>
-                    <li>Anti-VEGF injections</li>
-                    <li>Vitrectomy surgery in advanced cases</li>
-                </ul>
+            <div class="col-md-6 mb-4">
+                <div class="card h-100">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <h5 class="card-title text-muted">Analyses Today</h5>
+                                <h2 class="h1 fw-bold">{{ today_s_analyses }}</h2>
+                            </div>
+                            <div class="fs-1 text-success"><i class="fa-solid fa-calendar-day"></i></div>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
-        <hr>
-        <p>Early detection and timely treatment can prevent vision loss. For more information, please consult the <a href="https://www.who.int/news-room/fact-sheets/detail/diabetes" target="_blank">WHO publications</a> or your healthcare provider’s guidelines.</p>
+
+        <div class="card mb-4">
+            <div class="card-header bg-white">
+                <h4 class="h5 mb-0">Recent Analyses</h4>
+            </div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-hover mb-0">
+                        <thead>
+                            <tr>
+                                <th>Name</th>
+                                <th>Date</th>
+                                <th>Result</th>
+                                <th></th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for p in recent_patients %}
+                            <tr>
+                                <td>{{ p.name }}</td>
+                                <td>{{ p.created_at.strftime('%d %b, %Y') }}</td>
+                                <td>
+                                    <span class="badge {% if p.dr_result == 'No_DR' %}bg-success{% elif p.dr_result in ['Mild', 'Moderate'] %}bg-warning text-dark{% else %}bg-danger{% endif %}">
+                                        {{ p.dr_result | replace('_', ' ') }}
+                                    </span>
+                                </td>
+                                <td>
+                                    <a href="{{ url_for('main.patient_detail', patient_id=p.id) }}" class="btn btn-sm btn-outline-primary">View</a>
+                                </td>
+                            </tr>
+                            {% else %}
+                            <tr>
+                                <td colspan="4" class="text-center text-muted p-4">No recent analyses found.</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
     </div>
-</div>
+    <div class="col-lg-5 mb-4">
+        <div class="card h-100">
+            <div class="card-header bg-white">
+                <h4 class="h5 mb-0">Diagnosis Distribution</h4>
+            </div>
+            <div class="card-body d-flex align-items-center justify-content-center">
+                <canvas id="diagnosisChart"></canvas>
+            </div>
+        </div>
+    </div>
+    </div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const ctx = document.getElementById('diagnosisChart').getContext('2d');
+        const labels = JSON.parse('{{ chart_labels | safe }}');
+        const data = JSON.parse('{{ chart_data | safe }}');
+        new Chart(ctx, {
+            type: 'pie',
+            data: {
+                labels: labels,
+                datasets: [{
+                    label: 'Number of Patients',
+                    data: data,
+                    backgroundColor: ['#28a745', '#ffc107', '#dc3545', '#6c757d', '#0d6efd'],
+                    hoverOffset: 4
+                }]
+            },
+            options: { 
+                responsive: true,
+                maintainAspectRatio: false, // Allows chart to fill the card height
+                plugins: { 
+                    legend: { 
+                        position: 'top' 
+                    } 
+                } 
+            }
+        });
+    });
+</script>
 {% endblock %}
